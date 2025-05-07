@@ -7,26 +7,18 @@ export default async function Home({
 }: {
   searchParams: { [key: string]: string | string[] | undefined }
 }) {
-  const page = typeof searchParams.page === "string" ? Number.parseInt(searchParams.page) : 1
-  const category = typeof searchParams.category === "string" ? searchParams.category : undefined
-  const minPrice = typeof searchParams.min_price === "string" ? searchParams.min_price : undefined
-  const maxPrice = typeof searchParams.max_price === "string" ? searchParams.max_price : undefined
-  const city = typeof searchParams.city === "string" ? searchParams.city : undefined
-  const state = typeof searchParams.state === "string" ? searchParams.state : undefined
-  const country = typeof searchParams.country === "string" ? searchParams.country : undefined
-  const search = typeof searchParams.search === "string" ? searchParams.search : undefined
-  const ordering = typeof searchParams.ordering === "string" ? searchParams.ordering : undefined
-
+  const params = await searchParams
+  
   const filters = {
-    page,
-    category,
-    min_price: minPrice,
-    max_price: maxPrice,
-    city,
-    state,
-    country,
-    search,
-    ordering,
+    page: typeof params.page === "string" ? Number.parseInt(params.page) : 1,
+    category: typeof params.category === "string" ? params.category : undefined,
+    min_price: typeof params.min_price === "string" ? params.min_price : undefined,
+    max_price: typeof params.max_price === "string" ? params.max_price : undefined,
+    city: typeof params.city === "string" ? params.city : undefined,
+    state: typeof params.state === "string" ? params.state : undefined,
+    country: typeof params.country === "string" ? params.country : undefined,
+    search: typeof params.search === "string" ? params.search : undefined,
+    ordering: typeof params.ordering === "string" ? params.ordering : undefined,
   }
 
   const properties = await getProperties(filters)

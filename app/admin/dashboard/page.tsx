@@ -31,9 +31,9 @@ export default function AdminDashboard() {
           getCategories(),
         ])
 
-        setProperties(propertiesData.results || propertiesData)
+        setProperties(propertiesData.results || [])
         setContactInfo(contactInfoData)
-        setCategories(categoriesData)
+        setCategories(categoriesData.results || [])
       } catch (error) {
         console.error("Error fetching data:", error)
       } finally {

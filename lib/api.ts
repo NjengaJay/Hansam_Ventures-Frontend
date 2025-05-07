@@ -69,12 +69,13 @@ export async function getProperties(filters: Record<string, any>) {
     }
   })
 
-  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ""
+  const queryString = queryParams.toString()
+  const url = `${API_BASE_URL}/properties${queryString ? `?${queryString}` : ""}`
 
   // Use server-side fetch for initial page load
   if (typeof window === "undefined") {
     const { cookies } = await import("next/headers")
-    const response = await fetch(`${API_BASE_URL}/properties/${queryString}`, {
+    const response = await fetch(url, {
       headers: {
         "Content-Type": "application/json",
       },
@@ -84,7 +85,7 @@ export async function getProperties(filters: Record<string, any>) {
   }
 
   // Use client-side fetch for client components
-  const response = await fetch(`${API_BASE_URL}/properties/${queryString}`, {
+  const response = await fetch(url, {
     headers: {
       "Content-Type": "application/json",
     },
@@ -142,12 +143,26 @@ export async function updateProperty(propertyId: number, propertyData: FormData)
 }
 
 export async function deleteProperty(propertyId: number) {
-  const response = await fetch(`${API_BASE_URL}/properties/${propertyId}/`, {
+  // Get property details using the list endpoint with a filter
+  const response = await fetch(`${API_BASE_URL}/properties/?id=${propertyId}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  const data = await handleResponse(response)
+  const property = data.results?.[0]
+  
+  if (!property) {
+    throw new Error("Property not found")
+  }
+
+  // Then delete using the slug
+  const deleteResponse = await fetch(`${API_BASE_URL}/properties/${property.slug}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   })
 
-  return handleResponse(response)
+  return handleResponse(deleteResponse)
 }
 
 // Contact Info
@@ -227,10 +242,19 @@ export async function updateCategory(categoryId: number, categoryData: any) {
 }
 
 export async function deleteCategory(categoryId: number) {
+  // First get the category to get its slug
   const response = await fetch(`${API_BASE_URL}/categories/${categoryId}/`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  const category = await handleResponse(response)
+
+  // Then delete using the slug
+  const deleteResponse = await fetch(`${API_BASE_URL}/categories/${category.slug}/`, {
     method: "DELETE",
     headers: getAuthHeaders(),
   })
 
-  return handleResponse(response)
+  return handleResponse(deleteResponse)
 }

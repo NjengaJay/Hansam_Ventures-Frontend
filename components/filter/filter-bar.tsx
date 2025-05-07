@@ -17,7 +17,7 @@ export default function FilterBar() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const [isOpen, setIsOpen] = useState(false)
-  const [categories, setCategories] = useState([])
+  const [categories, setCategories] = useState<any[]>([])
   const [filters, setFilters] = useState({
     search: searchParams.get("search") || "",
     category: searchParams.get("category") || "",
@@ -38,9 +38,10 @@ export default function FilterBar() {
     const fetchCategories = async () => {
       try {
         const data = await getCategories()
-        setCategories(data)
+        setCategories(data.results || [])
       } catch (error) {
         console.error("Error fetching categories:", error)
+        setCategories([])
       }
     }
 

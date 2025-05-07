@@ -32,11 +32,12 @@ export default function PropertyCard({ property, contactInfo }: PropertyCardProp
   return (
     <Card className="overflow-hidden transition-all duration-300 hover:shadow-lg h-full flex flex-col">
       <div className="relative h-48 w-full">
-        <Link href={`/property/${property.slug}`}>
+        <Link href={`/property/${property.slug}`} className="relative block h-full">
           <Image
             src={property.primary_image?.thumbnail || "/placeholder.svg?height=192&width=384"}
             alt={property.title}
             fill
+            priority
             className="object-cover"
           />
         </Link>
