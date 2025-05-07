@@ -1,0 +1,236 @@
+// API service functions to interact with the Django backend
+
+const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api"
+
+// Helper function to handle API responses
+async function handleResponse(response: Response) {
+  if (!response.ok) {
+    // Try to get error details from the response
+    try {
+      const errorData = await response.json()
+      throw new Error(JSON.stringify(errorData))
+    } catch (e) {
+      throw new Error(`API error: ${response.status} ${response.statusText}`)
+    }
+  }
+
+  // Check if the response is empty
+  const contentType = response.headers.get("content-type")
+  if (contentType && contentType.includes("application/json")) {
+    return await response.json()
+  }
+
+  return null
+}
+
+// Helper function to get auth headers
+function getAuthHeaders() {
+  const accessToken = typeof window !== "undefined" ? localStorage.getItem("accessToken") : null
+
+  return {
+    Authorization: accessToken ? `Bearer ${accessToken}` : "",
+    "Content-Type": "application/json",
+  }
+}
+
+// Authentication
+export async function login(username: string, password: string) {
+  const response = await fetch(`${API_BASE_URL}/admin/login/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ username, password }),
+  })
+
+  return handleResponse(response)
+}
+
+export async function refreshToken(refreshToken: string) {
+  const response = await fetch(`${API_BASE_URL}/admin/token/refresh/`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ refresh: refreshToken }),
+  })
+
+  return handleResponse(response)
+}
+
+// Properties
+export async function getProperties(filters: Record<string, any>) {
+  // Build query string from filters
+  const queryParams = new URLSearchParams()
+
+  Object.entries(filters).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== "") {
+      queryParams.append(key, value.toString())
+    }
+  })
+
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : ""
+
+  // Use server-side fetch for initial page load
+  if (typeof window === "undefined") {
+    const { cookies } = await import("next/headers")
+    const response = await fetch(`${API_BASE_URL}/properties/${queryString}`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+    return handleResponse(response)
+  }
+
+  // Use client-side fetch for client components
+  const response = await fetch(`${API_BASE_URL}/properties/${queryString}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+  return handleResponse(response)
+}
+
+export async function getProperty(slug: string) {
+  // Use server-side fetch for initial page load
+  if (typeof window === "undefined") {
+    const response = await fetch(`${API_BASE_URL}/properties/${slug}/`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+    return handleResponse(response)
+  }
+
+  // Use client-side fetch for client components
+  const response = await fetch(`${API_BASE_URL}/properties/${slug}/`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+  return handleResponse(response)
+}
+
+export async function createProperty(propertyData: FormData) {
+  const response = await fetch(`${API_BASE_URL}/properties/`, {
+    method: "POST",
+    headers: {
+      Authorization: getAuthHeaders().Authorization,
+      // Don't set Content-Type for FormData, browser will set it with boundary
+    },
+    body: propertyData,
+  })
+
+  return handleResponse(response)
+}
+
+export async function updateProperty(propertyId: number, propertyData: FormData) {
+  const response = await fetch(`${API_BASE_URL}/properties/${propertyId}/`, {
+    method: "PUT",
+    headers: {
+      Authorization: getAuthHeaders().Authorization,
+      // Don't set Content-Type for FormData, browser will set it with boundary
+    },
+    body: propertyData,
+  })
+
+  return handleResponse(response)
+}
+
+export async function deleteProperty(propertyId: number) {
+  const response = await fetch(`${API_BASE_URL}/properties/${propertyId}/`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  })
+
+  return handleResponse(response)
+}
+
+// Contact Info
+export async function getContactInfo() {
+  // Use server-side fetch for initial page load
+  if (typeof window === "undefined") {
+    const response = await fetch(`${API_BASE_URL}/contact-info/`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+    return handleResponse(response)
+  }
+
+  // Use client-side fetch for client components
+  const response = await fetch(`${API_BASE_URL}/contact-info/`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+  return handleResponse(response)
+}
+
+export async function updateContactInfo(contactInfoId: number, contactInfoData: any) {
+  const response = await fetch(`${API_BASE_URL}/contact-info/${contactInfoId}/`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(contactInfoData),
+  })
+
+  return handleResponse(response)
+}
+
+// Categories
+export async function getCategories() {
+  // Use server-side fetch for initial page load
+  if (typeof window === "undefined") {
+    const response = await fetch(`${API_BASE_URL}/categories/`, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      cache: "no-store",
+    })
+    return handleResponse(response)
+  }
+
+  // Use client-side fetch for client components
+  const response = await fetch(`${API_BASE_URL}/categories/`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+
+  return handleResponse(response)
+}
+
+export async function createCategory(categoryData: any) {
+  const response = await fetch(`${API_BASE_URL}/categories/`, {
+    method: "POST",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(categoryData),
+  })
+
+  return handleResponse(response)
+}
+
+export async function updateCategory(categoryId: number, categoryData: any) {
+  const response = await fetch(`${API_BASE_URL}/categories/${categoryId}/`, {
+    method: "PUT",
+    headers: getAuthHeaders(),
+    body: JSON.stringify(categoryData),
+  })
+
+  return handleResponse(response)
+}
+
+export async function deleteCategory(categoryId: number) {
+  const response = await fetch(`${API_BASE_URL}/categories/${categoryId}/`, {
+    method: "DELETE",
+    headers: getAuthHeaders(),
+  })
+
+  return handleResponse(response)
+}
