@@ -34,6 +34,8 @@ export default function FilterBar() {
     filters.max_price ? Number.parseInt(filters.max_price) : 1000000,
   ])
 
+  const [debouncedSearch] = useState<NodeJS.Timeout>()
+
   useEffect(() => {
     const fetchCategories = async () => {
       try {
@@ -51,6 +53,20 @@ export default function FilterBar() {
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setFilters((prev) => ({ ...prev, [name]: value }))
+
+    // Only debounce search, not other inputs
+    if (name === "search") {
+      if (debouncedSearch) clearTimeout(debouncedSearch)
+      setTimeout(() => {
+        const params = new URLSearchParams(searchParams.toString())
+        if (value) {
+          params.set("search", value)
+        } else {
+          params.delete("search")
+        }
+        router.push(`/?${params.toString()}`)
+      }, 300)
+    }
   }
 
   const handleSelectChange = (name: string, value: string) => {
@@ -95,6 +111,13 @@ export default function FilterBar() {
     setIsOpen(false)
   }
 
+  const clearSearch = () => {
+    setFilters(prev => ({ ...prev, search: "" }))
+    const params = new URLSearchParams(searchParams.toString())
+    params.delete("search")
+    router.push(`/?${params.toString()}`)
+  }
+
   return (
     <div className="bg-white rounded-lg shadow-md p-4">
       <div className="flex flex-col md:flex-row gap-4">
@@ -106,11 +129,18 @@ export default function FilterBar() {
             type="text"
             name="search"
             placeholder="Search properties..."
-            className="pl-10"
+            className="pl-10 pr-10"
             value={filters.search}
             onChange={handleInputChange}
-            onKeyDown={(e) => e.key === "Enter" && applyFilters()}
           />
+          {filters.search && (
+            <button
+              onClick={clearSearch}
+              className="absolute inset-y-0 right-0 flex items-center pr-3 hover:text-gray-600"
+            >
+              <X className="h-5 w-5 text-gray-400" />
+            </button>
+          )}
         </div>
 
         <div className="flex gap-2">
