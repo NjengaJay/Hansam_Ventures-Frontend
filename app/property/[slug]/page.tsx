@@ -4,10 +4,22 @@ import PropertyDetails from "@/components/property/property-details"
 import ContactButtons from "@/components/property/contact-buttons"
 import { notFound } from "next/navigation"
 
-export default async function PropertyPage({ params }: { params: { slug: string } }) {
+interface Props {
+  params: Promise<{ slug: string }>
+}
+
+export default async function PropertyPage({ params }: Props) {
+  const { slug } = await params
+  
+  if (!slug) {
+    return notFound()
+  }
+
   try {
-    const property = await getProperty(params.slug)
-    const contactInfo = await getContactInfo()
+    const [property, contactInfo] = await Promise.all([
+      getProperty(slug),
+      getContactInfo()
+    ])
 
     return (
       <div className="container mx-auto px-4 py-8">

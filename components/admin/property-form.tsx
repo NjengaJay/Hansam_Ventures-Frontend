@@ -203,10 +203,13 @@ export default function PropertyForm({ property, categories, onSubmit, onCancel 
     try {
       const formDataToSend = new FormData()
 
-      // Add text fields
-      Object.entries(formData).forEach(([key, value]) => {
-        formDataToSend.append(key, value)
-      })
+      formDataToSend.append("title", formData.title)
+      formDataToSend.append("description", formData.description)
+      formDataToSend.append("price", formData.price)
+      formDataToSend.append("category_id", formData.category)
+      formDataToSend.append("city", formData.city)
+      formDataToSend.append("state", formData.state || formData.city)
+      formDataToSend.append("country", formData.country)
 
       // Add images
       images.forEach((image) => {
