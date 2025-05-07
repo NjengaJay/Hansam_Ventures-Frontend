@@ -242,13 +242,30 @@ export async function updateCategory(categoryId: number, categoryData: any) {
 }
 
 export async function deleteCategory(categoryId: number) {
-  // First get the category to get its slug
-  const response = await fetch(`${API_BASE_URL}/categories/${categoryId}/`, {
+  // Get category details using the list endpoint with a filter
+  const response = await fetch(`${API_BASE_URL}/categories/?id=${categoryId}`, {
     headers: {
       "Content-Type": "application/json",
     },
   })
-  const category = await handleResponse(response)
+  const data = await handleResponse(response)
+  const category = data.results?.[0]
+  
+  if (!category) {
+    throw new Error("Category not found")
+  }
+
+  // Check if category has any properties
+  const propertiesResponse = await fetch(`${API_BASE_URL}/properties/?category=${categoryId}`, {
+    headers: {
+      "Content-Type": "application/json",
+    },
+  })
+  const propertiesData = await handleResponse(propertiesResponse)
+  
+  if (propertiesData.results?.length > 0) {
+    throw new Error("Cannot delete category that has properties. Please delete or reassign the properties first.")
+  }
 
   // Then delete using the slug
   const deleteResponse = await fetch(`${API_BASE_URL}/categories/${category.slug}/`, {

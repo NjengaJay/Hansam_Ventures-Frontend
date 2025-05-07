@@ -38,7 +38,7 @@ export default function CategoriesTab({ categories, onUpdate }: CategoriesTabPro
   const [selectedCategory, setSelectedCategory] = useState<any>(null)
   const [categoryName, setCategoryName] = useState("")
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [error, setError] = useState("")
+  const [error, setError] = useState<string | null>(null)
   const [isDeleting, setIsDeleting] = useState(false)
 
   const handleAddCategory = async () => {
@@ -91,12 +91,14 @@ export default function CategoriesTab({ categories, onUpdate }: CategoriesTabPro
 
   const handleDeleteCategory = async (categoryId: number) => {
     setIsDeleting(true)
+    setError(null)
     try {
       await deleteCategory(categoryId)
       const updatedCategories = categories.filter((category) => category.id !== categoryId)
       onUpdate(updatedCategories)
     } catch (error) {
       console.error("Error deleting category:", error)
+      setError(error instanceof Error ? error.message : "Failed to delete category")
     } finally {
       setIsDeleting(false)
     }
@@ -110,6 +112,11 @@ export default function CategoriesTab({ categories, onUpdate }: CategoriesTabPro
 
   return (
     <div className="space-y-6">
+      {error && (
+        <div className="bg-destructive/15 text-destructive p-3 rounded-md mb-4">
+          {error}
+        </div>
+      )}
       <div className="flex justify-between items-center">
         <h2 className="text-2xl font-bold">Categories</h2>
         <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
